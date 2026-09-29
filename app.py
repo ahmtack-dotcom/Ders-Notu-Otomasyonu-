@@ -10,28 +10,8 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=".", static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 55 * 1024 * 1024
 
-def _get_gemini_key():
-    # Render bazen ismi değiştirebiliyor, birkaç olasılığı dene
-    candidates = [
-        "GEMINI_API_KEY",
-        "Gemini_API_Key",
-        "gemini_api_key",
-        "GEMINI_KEY",
-        "GOOGLE_API_KEY",
-        "API_KEY",
-    ]
-    for name in candidates:
-        val = os.environ.get(name, "").strip()
-        if val:
-            return val
-    # Son çare: ortamda gemini geçen herhangi bir değişken
-    for k, v in os.environ.items():
-        if v and "gemini" in k.lower():
-            return v.strip()
-    return ""
-
-GEMINI_API_KEY = _get_gemini_key()
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash").strip()
 
 SYSTEM = """Sen ders notu analiz eden bir eğitim asistanısın.
 Yüklenen PDF sayfalarının görüntülerini incele. El yazısı, basılı metin, tablo,
@@ -92,9 +72,11 @@ def call_gemini(images, task: str, force_json: bool = True) -> str:
         mime, raw = parse_data_url(data_url)
         parts.append(types.Part.from_bytes(data=raw, mime_type=mime))
 
+    # Gemini 3.8 Flash migration:
+    # Keep generation config minimal; the model has its own default
+    # reasoning/sampling behavior and does not need the legacy temperature setting.
     config_kwargs = {
         "system_instruction": SYSTEM,
-        "temperature": 0.2,
     }
     if force_json:
         config_kwargs["response_mime_type"] = "application/json"
@@ -226,7 +208,10 @@ Yalnızca JSON döndür."""
         return (
             jsonify(
                 error=str(e),
-                hint="/api/health adresinden sunucu durumunu kontrol edin.",
+                hint=(
+                    "Önce /api/health ile anahtar ve model durumunu kontrol edin. "
+                    "Gemini 3.8 Flash için GEMINI_MODEL=gemini-3.8-flash kullanın."
+                ),
             ),
             500,
         )
