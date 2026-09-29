@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ders Notu Otomasyonu V0.5 (Gemini)</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#172033;--muted:#687386;--primary:#635bff;--line:#e2e7f0;--ok:#15803d;--bad:#b42318;--warn:#a15c00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(135deg,#20175e,#635bff);color:#fff;padding:23px 17px}.wrap{max-width:1180px;margin:auto}h1{margin:0 0 4px;font-size:27px}.sub{opacity:.88;font-size:14px}
+main{display:grid;grid-template-columns:330px 1fr;gap:17px;margin:19px auto;padding:0 15px;max-width:1180px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 8px 28px #26324b0a}h2{font-size:19px;margin:0 0 11px}
+label{display:block;font-size:13px;font-weight:800;margin:12px 0 5px}select,input[type=text],input[type=file]{width:100%;padding:11px;border:1px solid #d4dbe7;border-radius:10px;background:#fff}
+button{border:0;border-radius:11px;padding:11px 14px;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.primary{background:var(--primary);color:#fff}.secondary{background:#eef0f6;color:#263149}.green{background:#e8f8ee;color:#126c3d}.red{background:#fff0ef;color:#a61b13}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.status{margin-top:12px;color:var(--muted);font-size:13px;line-height:1.45}.drop{border:2px dashed #cbd3e2;border-radius:14px;padding:17px;text-align:center;margin-top:14px;background:#fafbfe}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.full{grid-column:1/-1}.pagegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:9px}.page{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fafbff}.page img{width:100%;display:block}.page small{display:block;padding:7px;color:var(--muted)}
+.topic{padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fcfdff}.topic strong{display:block}.tag{display:inline-block;font-size:11px;border-radius:999px;padding:4px 7px;background:#edf8f1;color:#167143;margin-top:5px}.muted{color:var(--muted)}
+textarea{width:100%;min-height:330px;padding:13px;border:1px solid #d5dbe7;border-radius:12px;font:14px/1.5 system-ui,Arial,sans-serif}pre{white-space:pre-wrap;max-height:380px;overflow:auto;background:#111827;color:#e5e7eb;border-radius:12px;padding:13px;font-size:12px}.progress{height:8px;background:#e9edf4;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--primary);transition:width .25s}.note{padding:11px;border-radius:10px;background:#fff8e8;border:1px solid #f1dda9;font-size:13px}.health{font-size:12px;margin-top:9px;padding:9px;border-radius:9px;background:#f7f8fb;border:1px solid var(--line)}
+@media(max-width:850px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>📚 Ders Notu Otomasyonu</h1><div class="sub">V0.5 • Gemini • El yazılı PDF → AI Vision → konu tespiti → öğretmen kontrollü taslak</div></div></header>
+<main>
+<section class="card">
+<h2>⚙️ Materyal Bilgileri</h2>
+<label>Sınıf</label><select id="grade"><option>4. Sınıf</option><option>5. Sınıf</option><option selected>6. Sınıf</option><option>7. Sınıf</option><option>8. Sınıf</option></select>
+<label>Ders</label><select id="subject"><option>İngilizce</option><option>Türkçe</option><option>Matematik</option><option selected>Fen Bilimleri</option><option>Sosyal Bilgiler</option></select>
+<label>Ünite</label><input id="unit" value="Unit 1">
+<div class="drop"><b>📎 PDF seç</b><br><span class="muted">PDF sayfaları taranır ve görüntü olarak AI'ya gönderilir.</span><input id="file" type="file" accept=".pdf,application/pdf" style="margin-top:11px"></div>
+<div class="actions"><button class="primary" id="renderBtn">👁️ PDF'yi Görsel Olarak Oku</button><button class="secondary" id="healthBtn">🔌 Sunucuyu Test Et</button><button class="secondary" id="demoBtn">🧪 Demo</button></div>
+<div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="status">Henüz PDF seçilmedi.</div><div class="health" id="health">Sunucu durumu henüz test edilmedi.</div>
+</section>
+<section class="grid">
+<div class="card full"><h2>🖼️ Sayfa Önizlemeleri</h2><div id="pages" class="pagegrid"><div class="muted">PDF seçip görsel okumayı başlatın.</div></div></div>
+<div class="card"><h2>🤖 AI Analiz</h2><div id="analysis" class="note">Henüz AI analizi yapılmadı.</div><div class="actions"><button class="primary" id="aiBtn" disabled>🧠 AI ile Analiz Et</button></div></div>
+<div class="card"><h2>🎯 Tespit Edilen Konular</h2><div id="topics"><span class="muted">Henüz konu yok.</span></div></div>
+<div class="card full"><h2>📝 Öğretmen Kontrollü Taslak</h2><div class="actions"><button class="green" id="makeDraft" disabled>📝 Taslak Oluştur</button><button class="secondary" id="copyDraft">📋 Kopyala</button></div><textarea id="summary" placeholder="AI analizinden sonra burada öğretmen kontrolüne sunulan taslak oluşacak."></textarea></div>
+<div class="card full"><h2>🔍 AI'nin Okuduğu İçerik</h2><pre id="source">AI analizi yapıldığında yapılandırılmış sonuç burada gösterilecek.</pre></div>
+</section></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const $=id=>document.getElementById(id);let pages=[],aiResult=null;
+function status(t){$("status").textContent=t}function bar(n){$("bar").style.width=Math.max(0,Math.min(100,n))+"%"}function esc(s){return String(s??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function apiBase(){return localStorage.getItem("DNO_API_BASE")||""}
+async function health(){try{const r=await fetch(apiBase()+"/api/health");const d=await r.json();$("health").innerHTML=d.api_key_configured?`🟢 Sunucu hazır • ${esc(d.model)} (${esc(d.provider||"gemini")})`:`🟠 Sunucu çalışıyor fakat GEMINI_API_KEY tanımlı değil.`;return d}catch(e){$("health").innerHTML=`🔴 Sunucuya ulaşılamıyor. <b>V0.5'i Python/Flask ile çalıştırın.</b><br><small>${esc(e.message)}</small>`;return null}}
+async function renderPdf(file){const btn=$("renderBtn");btn.disabled=true;btn.textContent="⏳ Hazırlanıyor...";pages=[];$("pages").innerHTML="";try{status("PDF açılıyor...");bar(4);const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;const max=Math.min(pdf.numPages,12);for(let i=1;i<=max;i++){status(`🖼️ Sayfa ${i}/${max} hazırlanıyor...`);const p=await pdf.getPage(i);const v=p.getViewport({scale:1.35});const c=document.createElement("canvas");c.width=v.width;c.height=v.height;await p.render({canvasContext:c.getContext("2d"),viewport:v}).promise;const dataUrl=c.toDataURL("image/jpeg",.62);pages.push({page:i,image:dataUrl});const div=document.createElement("div");div.className="page";div.innerHTML=`<img src="${dataUrl}"><small>Sayfa ${i}</small>`;$("pages").appendChild(div);bar(5+(i/max)*70)}status(pdf.numPages>max?`⚠️ PDF ${pdf.numPages} sayfa. İlk ${max} sayfa hazır.`:"✅ Tüm sayfalar hazır. AI analizine geçebilirsiniz.");$("aiBtn").disabled=false;bar(80)}catch(e){console.error(e);status("❌ PDF hatası: "+e.message)}finally{btn.disabled=false;btn.textContent="👁️ PDF'yi Görsel Olarak Oku"}}
+function renderTopics(topics){$("topics").innerHTML=(topics||[]).length?topics.map((t,i)=>`<div class="topic"><strong>${i+1}. ${esc(t.title||t)}</strong>${t.detail?`<span class="muted">${esc(t.detail)}</span><br>`:""}<span class="tag">${esc(t.status||"AI tespiti")}</span></div>`).join(""):"<div class='note'>Konu tespiti yapılamadı.</div>"}
+async function analyzeAI(){if(!pages.length){status("Önce PDF'yi görsele çevirin.");return}const btn=$("aiBtn");btn.disabled=true;btn.textContent="⏳ AI inceliyor...";try{status("🧠 AI sayfaları küçük gruplar halinde inceliyor...");const r=await fetch(apiBase()+"/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({grade:$("grade").value,subject:$("subject").value,unit:$("unit").value,pages})});let d;try{d=await r.json()}catch(_){throw new Error("Sunucu JSON yanıtı vermedi. Sunucunun çalıştığından emin olun.")}if(!r.ok)throw new Error(d.error||"Sunucu hatası");aiResult=d;$("analysis").innerHTML=`<b>Durum:</b> 🟢 Tamamlandı<br><b>Okunan sayfa:</b> ${d.pages_read||pages.length}<br><b>Konu:</b> ${(d.topics||[]).length}<br><b>Kelime:</b> ${(d.vocabulary||[]).length}<br><b>Belirsiz:</b> ${(d.uncertain||[]).length}`;renderTopics(d.topics);$("source").textContent=JSON.stringify(d,null,2);$("makeDraft").disabled=false;bar(100);status("✅ AI analizi tamamlandı.")}catch(e){console.error(e);$("analysis").innerHTML=`<div style="color:#b42318"><b>AI analizi yapılamadı.</b><br>${esc(e.message)}<br><br><b>Önce “Sunucuyu Test Et” düğmesine basın.</b></div>`;status("❌ "+e.message)}finally{btn.disabled=false;btn.textContent="🧠 AI ile Analiz Et"}}
+$("healthBtn").onclick=health;$("file").onchange=e=>{const f=e.target.files[0];if(f){pages=[];$("aiBtn").disabled=true;$("makeDraft").disabled=true;status("📎 "+f.name+" seçildi.");}};$("renderBtn").onclick=()=>{const f=$("file").files[0];f?renderPdf(f):status("⚠️ Önce PDF seçin.")};$("aiBtn").onclick=analyzeAI;
+$("makeDraft").onclick=async()=>{if(!aiResult)return;const r=await fetch(apiBase()+"/api/draft",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({grade:$("grade").value,subject:$("subject").value,unit:$("unit").value,analysis:aiResult})});const d=await r.json();if(!r.ok){status("❌ Taslak hatası: "+(d.error||""));return}$("summary").value=d.draft||"";status("📝 Taslak hazır.")};$("copyDraft").onclick=async()=>{try{await navigator.clipboard.writeText($("summary").value);status("📋 Taslak panoya kopyalandı.")}catch(e){status("Kopyalama başarısız.")}};
+$("demoBtn").onclick=()=>{$("analysis").innerHTML="<b>Demo:</b> Sistem arayüzü çalışıyor.";renderTopics([{title:"Atmosfer ve Hava Olayları",detail:"Demo verisi.",status:"Demo"},{title:"İklim ve Hava Olayları Arasındaki Farklar",detail:"Demo verisi.",status:"Demo"},{title:"Küresel İklim Değişikliği",detail:"Demo verisi.",status:"Demo"}]);$("summary").value="ÖĞRETMEN KONTROLLÜ TASLAK\n\nKonu başlıkları AI analizinden sonra burada oluşturulacaktır.";$("makeDraft").disabled=false;status("🧪 Demo hazır.")};
+// Sayfa doğrudan content:// üzerinden açıldıysa API çağrısı yapılamaz; kullanıcıya net biçimde göster.
+if(location.protocol==="file:"||location.protocol==="content:"){$("health").innerHTML="🟠 PDF okuma çalışabilir; ancak AI için Flask sunucusundan açmanız gerekir. ZIP içindeki README adımlarını uygulayın."}
+</script>
+</body></html>
