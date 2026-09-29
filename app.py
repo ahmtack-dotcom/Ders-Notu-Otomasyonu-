@@ -10,7 +10,27 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=".", static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 55 * 1024 * 1024
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+def _get_gemini_key():
+    # Render bazen ismi değiştirebiliyor, birkaç olasılığı dene
+    candidates = [
+        "GEMINI_API_KEY",
+        "Gemini_API_Key",
+        "gemini_api_key",
+        "GEMINI_KEY",
+        "GOOGLE_API_KEY",
+        "API_KEY",
+    ]
+    for name in candidates:
+        val = os.environ.get(name, "").strip()
+        if val:
+            return val
+    # Son çare: ortamda gemini geçen herhangi bir değişken
+    for k, v in os.environ.items():
+        if v and "gemini" in k.lower():
+            return v.strip()
+    return ""
+
+GEMINI_API_KEY = _get_gemini_key()
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
 
 SYSTEM = """Sen ders notu analiz eden bir eğitim asistanısın.
